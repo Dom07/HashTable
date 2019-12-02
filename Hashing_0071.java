@@ -1,3 +1,5 @@
+// Dominic Devasahaym CS 610 0071 prp
+
 import java.io.*;
 
 public class Hashing_0071{
@@ -115,21 +117,53 @@ public class Hashing_0071{
 
     public String hashSearch(String word){
         int hDash = calculateHDash(word);
-        if(hashTable[hDash] == -1){
+        if(hashTable[hDash] == -1){ // terminating if the first value encountered is -1
             return "Not found";
         }else{
             for(int i = 0 ; i < m; i++){
+                int newProb = (hDash + i*i) % m;
+                System.out.println("Prob Value:"+newProb);
+                if(hashTable[newProb] == -2){ // if hastable points to -2, it means item was deleted
+                    continue;
+                }else if(hashTable[newProb] == -1){  // if hashtable points to -1, it means that item never existed
+                    return "Not Found";
+                }else{
+                    String existingWord = "";
+                    for(int j = hashTable[newProb]; j<word.length()+hashTable[newProb]; j++){
+                        existingWord = existingWord+wordArray[j];
+                    }
+                    if(existingWord.equals(word)){
+                        return "Item found at slot "+newProb;
+                    }
+                }
+            }
+        }
+        return "Not found";
+    }
+
+    public String hashDelete(String word){
+        int hDash = calculateHDash(word);
+        if(hashTable[hDash] == -1){
+            return "Does not exist";
+        }else{
+            for(int i = 0; i < 1; i++){
                 int newProb = (hDash + i*i) % m;
                 String existingWord = "";
                 for(int j = hashTable[newProb]; j<word.length()+hashTable[newProb]; j++){
                     existingWord = existingWord+wordArray[j];
                 }
                 if(existingWord.equals(word)){
-                    return "Item found at slot "+newProb;
+                    for(int j = hashTable[newProb]; j<word.length()+hashTable[newProb]+1; j++){
+                        wordArray[j]='*';
+                    }   
+                    hashTable[newProb] = -2;
+                    writeTableToFile();
+                    writeWordArrayToFile();
+                    return word+" Deleted";
                 }
             }
         }
-        return "Not found";
+        return "Failed";
     }
 
     // Calculate value of Hdash
