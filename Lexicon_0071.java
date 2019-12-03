@@ -2,20 +2,29 @@
 
 import java.io.*;
 
-public class Hashing_0071{
-    private int m;
-    private int s;
-    private int[] hashTable;
-    private char[] wordArray;
+public class Lexicon_0071{
+
+    private static Lexicon_0071 lexicon = null;
+    private static int m;
+    private static int s;
+    private static int[] hashTable;
+    private static char[] wordArray;
 
     BufferedReader bf;
     String line;
 
-    public Hashing_0071(int m){
-        this.m = m;
+    public static Lexicon_0071 getInstance(int m){
+        if(lexicon == null){
+            lexicon = new Lexicon_0071(m);
+        }
+        return lexicon;
+    }
+    
+    private Lexicon_0071(int tableSize){
+        m = tableSize;
         s = 15*m;
-        this.hashTable = new int[m];
-        this.wordArray = new char[s];
+        hashTable = new int[m];
+        wordArray = new char[s];
         File tableText = new File("Table.txt");
         File wordText = new File("WordArray.txt");
         if(tableText.exists() && wordText.exists()){
@@ -44,6 +53,7 @@ public class Hashing_0071{
         }else{
             initialize();
         }
+        System.out.println("Lexicon initialized");
     }
 
     private void initialize(){
@@ -66,8 +76,49 @@ public class Hashing_0071{
             System.out.println(e);
         }
     }
+
+// Functions as per requirements 
+    public static Lexicon_0071 HashCreate(Lexicon_0071 L, int m){
+        if(L == null){
+            L = getInstance(m);
+        }
+        return L;
+    }
+
+    public static void HashEmpty(Lexicon_0071 L){
+        if(L==null){
+            System.out.println("Lexicon is empty");
+        }else{
+            System.out.println("Lexicon is not empty");
+        }
+    }
+
+    public static void HashFull(Lexicon_0071 L){
+        int count = 0;
+        for(int i = 0; i < wordArray.length; i++){
+            if(wordArray[i]=='*'){
+                count++;
+            }
+        }
+        if(count>3){
+            System.out.println("Hash table has "+count+" bytes available");
+        }else{
+            System.out.println("Hash table is full");
+        }
+    }
+
+    public static void HashPrint(Lexicon_0071 L){
+        String value;
+        for(int i = 0; i< m;i++){
+            value = "";
+            if(hashTable[i] != -1 && hashTable[i] !=-2){
+                value = String.valueOf(hashTable[i]);    
+            }
+            System.out.println(i+" : "+value);
+        }
+    }
     
-    public void hashInsert(String word){
+    public static void HashInsert(String word){
         int sum = 0;
         int hDash = 0;
         int h = 0;
@@ -104,7 +155,6 @@ public class Hashing_0071{
         }
 
         hashTable[h] = startIndex;
-        System.out.println(startIndex+" "+word.length());
         int counter = 0;
         for(int i=startIndex; i<word.length()+startIndex; i++){
             wordArray[i] = word.charAt(counter);
@@ -115,39 +165,42 @@ public class Hashing_0071{
         writeWordArrayToFile();
     }
 
-    public String hashSearch(String word){
+    public static void HashSearch(String word){
         int hDash = calculateHDash(word);
         if(hashTable[hDash] == -1){ // terminating if the first value encountered is -1
-            return "Not found";
+            System.out.println("Not found");
         }else{
             for(int i = 0 ; i < m; i++){
                 int newProb = (hDash + i*i) % m;
-                System.out.println("Prob Value:"+newProb);
                 if(hashTable[newProb] == -2){ // if hastable points to -2, it means item was deleted
                     continue;
                 }else if(hashTable[newProb] == -1){  // if hashtable points to -1, it means that item never existed
-                    return "Not Found";
+                    System.out.println("Not Found");
                 }else{
                     String existingWord = "";
                     for(int j = hashTable[newProb]; j<word.length()+hashTable[newProb]; j++){
                         existingWord = existingWord+wordArray[j];
                     }
                     if(existingWord.equals(word)){
-                        return "Item found at slot "+newProb;
+                        System.out.println("Item found at slot "+newProb);
+                        break;
                     }
                 }
             }
         }
-        return "Not found";
     }
 
-    public String hashDelete(String word){
+    public static void HashDelete(String word){
         int hDash = calculateHDash(word);
+        boolean deleted = false;
         if(hashTable[hDash] == -1){
-            return "Does not exist";
+            System.out.println("Does not exist");
         }else{
             for(int i = 0; i < 1; i++){
                 int newProb = (hDash + i*i) % m;
+                if(hashTable[newProb] == -2){
+                    continue;
+                }
                 String existingWord = "";
                 for(int j = hashTable[newProb]; j<word.length()+hashTable[newProb]; j++){
                     existingWord = existingWord+wordArray[j];
@@ -157,17 +210,20 @@ public class Hashing_0071{
                         wordArray[j]='*';
                     }   
                     hashTable[newProb] = -2;
+                    deleted = true;
                     writeTableToFile();
                     writeWordArrayToFile();
-                    return word+" Deleted";
+                    System.out.println(word+" Deleted");
                 }
             }
         }
-        return "Failed";
+        if(!deleted){
+            System.out.println("Word "+word+" does not exist");
+        }
     }
 
     // Calculate value of Hdash
-    private int calculateHDash(String word){
+    private static int calculateHDash(String word){
         int sum = 0;
         for(int i = 0; i<word.length(); i++){
             int ascii = (int)word.charAt(i);
@@ -177,11 +233,7 @@ public class Hashing_0071{
     }
 
     // Print Contents of Table
-    public void printTable(){
-        for(int i = 0; i<m;i++){
-            System.out.println(i+" : "+hashTable[i]);
-        }
-    }
+    
 
     // Print Contents of WordArray
     public void printWordArray(){
@@ -191,7 +243,7 @@ public class Hashing_0071{
     }
 
     // Write new values to Table file
-    public void writeTableToFile(){
+    private static void writeTableToFile(){
         try{
             FileWriter fw = new FileWriter("Table.txt");
             for(int i = 0; i < m; i++){
@@ -204,7 +256,7 @@ public class Hashing_0071{
     }
 
     // Write new values to WordArray file
-    public void writeWordArrayToFile(){
+    private static void writeWordArrayToFile(){
         try{
             FileWriter fw = new FileWriter("WordArray.txt");
             for(int i = 0; i < s; i++){
