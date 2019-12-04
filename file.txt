@@ -1,0 +1,15 @@
+14 11
+10 alex
+10 tom
+10 bom
+10 rom
+10 dom
+10 com
+10 lom
+10 som
+10 pom
+10 eom
+10 tomb
+11 kom
+13
+15
